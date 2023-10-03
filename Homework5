@@ -119,3 +119,30 @@ AND	  AID IN (	SELECT AID
 				FROM Flights
 				WHERE Type IN ('BOEING')
 				)
+
+-- Q8 Find the name, model and cruising range of all aircraft supplied by the American Rockwell company.
+SELECT Aname , Model, Cruising_Range
+FROM Aircraft
+WHERE SubID IN (	SELECT SupID
+					FROM Supplier
+					WHERE SupName IN ('American Rockwell')
+					)
+
+-- Q9 Find the name, model and cruising range of all aircraft assembled in France.
+SELECT Aname , Model, Cruising_Range
+FROM Aircraft
+WHERE SubID IN (	SELECT SupID
+					FROM Supplier
+					WHERE SupAddress LIKE('%France')
+					)
+
+-- Q10 Find all the routes (FlightNo, FlgFrom, FlgTo, Distance ) for the aircraft that were assembled in Germany.
+SELECT FlightNo, FlgFrom, FlgTo, Distance
+FROM Flights
+WHERE AID IN (	SELECT AID
+				FROM Aircraft
+				WHERE SubID IN (	SELECT SupID
+									FROM Supplier
+									WHERE SupAddress LIKE('%Germany')
+								)
+			)
