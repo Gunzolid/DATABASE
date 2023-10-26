@@ -1,0 +1,115 @@
+
+/*
+CREATE TABLE Flights
+(
+	FlightNo		CHAR(5),
+	AID				CHAR(6),
+	Type			VARCHAR(10),
+	FlgFrom			VARCHAR(20),
+	FlgTo			VARCHAR(20),
+	Distance		INT,
+	Depart			CHAR(5),
+	Arrive			CHAR(5),
+	Price			INT
+)
+
+INSERT INTO Flights (FlightNo, AID, Type, FlgFrom, FlgTo, Distance, Depart, Arrive, Price)
+VALUES 
+('TG732', 'BO1733', 'BOEING', 'Bangkok', 'Dullus', 8120, '01.00', '23.30', 38635),
+('TG865', 'AB1208', 'AIRBUS', 'Bangkok', 'Narita', 2570, '10.00', '15.00', 17300),
+('TG122', 'BO3409', 'BOEING', 'Phuket', 'Singapore', 835, '14.45', '16.15', 6950),
+('TG347', 'BO7861', 'BOEING', 'London', 'Bangkok', 5895, '16.15', '04.30', 28650),
+('TG232', 'BO1287', 'BOEING', 'Bangkok', 'Egypt', 2450, '20.30', '02.45', 17300),
+('TG455', 'AB1086', 'AIRBUS', 'Auckland', 'Bangkok', 1575, '00.35', '06.05', 18600),
+('TG765', 'AB2475', 'AIRBUS', 'Perth', 'Bangkok', 1250, '09.00', '14.45', 15700),
+('TG876', 'AB2369', 'AIRBUS', 'Vancuver', 'Bangkok', 7595, '00.45', '23.45', 35000)
+
+CREATE TABLE Aircraft
+(
+	AID				CHAR(6),
+	Aname			VARCHAR(20),
+	Model			CHAR(5),
+	Cruising_Range	INT,
+	SubID			CHAR(5)
+)
+INSERT INTO Aircraft (AID, Aname, Model, Cruising_Range, SubID)
+VALUES 
+	('AB1086', 'BUCK', 'A-320', 5000, 'S1002'),
+	('AB1208', 'DEWEY', 'A-320', 5000, 'S1003'),
+	('AB2369', 'MAYA', 'A-380', 10000, 'S1001'),
+	('AB2475', 'MAX', 'A-333', 10000, 'S1002'),
+	('BO1287', 'OLD JACK', 'B-747', 8000, 'S1004'),
+	('BO1733', 'SHADOW', 'B-747', 8000, 'S1003'),
+	('BO3409', 'SHORTIE', 'B-777', 10000, 'S1004'),
+	('BO7861', 'THUMAN', 'B-737', 5000, 'S1002')
+
+
+CREATE TABLE Supplier
+(
+	SupID				CHAR(5),
+	SupName				VARCHAR(100),
+	SupAddress			VARCHAR(100),
+	Telephone			VARCHAR(20)
+)
+INSERT INTO Supplier(SupID, SupName, SupAddress, Telephone)
+VALUES 
+('S1001', 'American Rockwell', '3236 M St NW, Washington, DC, 20007, United States', '001-140-7717177'),
+('S1002', 'ATR Bombardier Embraer', '1550 Wilson Blvd, Arlington, VA, 22209, United States', '001-159-23923969'),
+('S1003', 'Aerospatiale', '35 Rue Chevalier de La Barre,75018 Paris, France', '36-01-53418900'),
+('S1004', 'Boeing Commercial Airplanes', 'Echterdinger Stra?e 30, 70599, Stuttgart, Germany', '49-0711167650')
+*/
+
+-- [1] List the flight detail (FlightNo, FlgFrom, FlgTo, Distance, Aname, Model) of the flight which uses aircraft
+-- name = Max (aname = 'Max').
+SELECT FlightNo, FlgFrom, FlgTo, Distance, Aname, Model
+FROM Flights, Aircraft
+WHERE Flights.AID = Aircraft.AID
+AND Aname = 'Max'
+
+-- [2] List the aircraft models together with supplier name and their address.
+SELECT Model, SupName, SupAddress
+FROM Aircraft, Supplier
+WHERE Aircraft.SubID = Supplier.SupID
+
+-- [3] List the aircraft name, type, model and distance of the flight which the distance greater than the
+-- average distance of all flights.
+SELECT Aname, Type, Model, Distance
+FROM Aircraft, Flights
+WHERE Aircraft.AID = Flights.AID
+AND Distance >= (	SELECT AVG(Distance)
+					FROM Flights)
+
+-- [4] List the departure city, arrival city, aircraft name and distance of all flights.
+SELECT FlgFrom, FlgTo, Aname, Distance
+FROM Aircraft, Flights
+WHERE Aircraft.AID = Flights.AID
+
+-- [5] List the name, type, model and cruising range of all aircraft supplied by American Rockwell.
+SELECT Aname, Type, Model, Cruising_Range
+FROM Aircraft, Flights
+WHERE Aircraft.AID = Flights.AID
+AND Aircraft.SubID IN (	SELECT SupID
+						FROM Supplier
+						WHERE SupName = 'American Rockwell')
+
+-- [6] List the departure city, arrival city, type and model of all aircraft made from Germany.
+SELECT FlgFrom, FlgTo, Type, Model
+FROM Flights, Aircraft
+WHERE Flights.AID = Aircraft.AID
+AND Aircraft.SubID IN (	SELECT SupID
+						FROM Supplier
+						WHERE SupAddress LIKE '%Germany')
+
+-- [7] List the supplier name and the number of aircraft supplied.
+SELECT SupName, COUNT(AID) AS 'Number of aircraft supplied'
+FROM Supplier, Aircraft
+WHERE Supplier.SupID = Aircraft.SubID
+GROUP BY SupName
+
+-- [8] List the flight number, aircraft name, departure city, arrival city, aircraft model, supplier name and
+-- supplier contact number of B-747 flights.
+SELECT FlightNo, Aname, FlgFrom, FlgTo, Model, SupName, Telephone
+FROM Flights, Aircraft, Supplier
+WHERE	Flights.AID = Aircraft.AID
+AND		Aircraft.SubID = Supplier.SupID
+AND	Model = 'B-747'
